@@ -2,7 +2,7 @@
 #
 # Lookup URLs using Google Safebrowsing Lookup API.
 # 
-# (c) Ivan Radanovic <ivanra at gmail>
+# Copyright (c) 2012 Ivan Radanovic <ivanra at gmail>
 #
 # Utilizes Google Safe Browsing Lookup API, protocol version 3.0.
 # See https://developers.google.com/safe-browsing/lookup_guide for more information.
@@ -104,7 +104,7 @@ parse_response() {
 	esac
 }
 
-query_api () {
+query_api() {
 	{
 		printf "%d" $#;
 		for url in "$@"; do
