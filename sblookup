@@ -21,7 +21,7 @@ deps="curl"
 
 help() {
 	cat <<EOF
-Usage: `basename $0` [options] [FILE ...]
+Usage: ${0##*/} [options] [FILE ...]
 
 Lookup URLs using Google Safe Browsing Lookup API.
 Returns Safe Browsing verdicts for URLs read from files. Each line is treated as a single URL.
@@ -47,7 +47,7 @@ check_deps() {
 	local i
 	for i in $deps; do
 		if ! type $i >/dev/null 2>&1; then
-			echo "`basename $0`: error: $i is required. aborting."
+			echo "${0##*/}: error: $i is required. aborting."
 			exit 1
 		fi
 	done
@@ -87,19 +87,19 @@ parse_response() {
 				printf "ok\t%s\n" "$url"
 			done ;;
 		400)
-			echo "`basename $0`: error: HTTP/400, request malformed."
+			echo "${0##*/}: error: HTTP/400, request malformed."
 			exit 2 ;;
 		401) 
-			echo "`basename $0`: error: HTTP/401, API key is not authorized."
+			echo "${0##*/}: error: HTTP/401, API key is not authorized."
 			exit 2 ;;
 		403)
-			echo "`basename $0`: error: HTTP/403, possibly invalid API key."
+			echo "${0##*/}: error: HTTP/403, possibly invalid API key."
 			exit 2 ;;
 		503)
-			echo "`basename $0`: error: HTTP/503, service is unavailable."
+			echo "${0##*/}: error: HTTP/503, service is unavailable."
 			exit 2 ;;
 		*)
-			echo "`basename $0`: error: unexpected protocol error, HTTP/$line returned."
+			echo "${0##*/}: error: unexpected protocol error, HTTP/$line returned."
 			exit 2 ;;
 	esac
 }
@@ -128,7 +128,7 @@ while getopts ":a:c:h" opt; do
 			help
 			exit 0 ;;
 		*) 
-			echo "`basename $0`: error: invalid option -- '$OPTARG'"
+			echo "${0##*/}: error: invalid option -- '$OPTARG'"
 			exit 1 ;;
 	esac
 done
@@ -140,7 +140,7 @@ if [ -z "${!api_key_var_name}" -a -r "$rc_file" ]; then
 fi
 
 if [ -z "${!api_key_var_name}" ]; then
-	echo "`basename $0`: error: ${api_key_var_name} has not been provided."
+	echo "${0##*/}: error: ${api_key_var_name} has not been provided."
 	exit 1
 fi
 
