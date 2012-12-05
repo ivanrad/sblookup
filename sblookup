@@ -54,8 +54,7 @@ check_deps() {
 }
 
 read_config() {
-	local key
-	local value
+	local key value
 	while IFS="=" read key value; do
 		if [ "$key" = "${api_key_var_name}" -a -n "$value" ]; then
 			eval ${api_key_var_name}=\"$value\"
@@ -65,10 +64,7 @@ read_config() {
 }
 
 parse_response() {
-	local response
-	local line
-	local i
-	local k
+	local response line i k
 
 	declare -a response=()
 	while read -r line; do
