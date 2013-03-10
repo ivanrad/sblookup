@@ -32,7 +32,7 @@ For help on using sblookup, invoke it with an `-h` option (i.e. `sblookup -h`).
 
 ## License
 
-Copyright (c) 2012 Ivan Radanovic &lt;ivanra at gmail&gt;.
+Copyright (c) 2012-2013 Ivan Radanovic &lt;ivanra at gmail&gt;.
 
 This code has been published under MIT license. See `LICENSE` file for more information.
 
