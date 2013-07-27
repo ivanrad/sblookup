@@ -10,8 +10,10 @@
 
 # default config file
 rc_file="$HOME/.sblookuprc"
-# max URLs per single HTTP POST request
-max_urls_per_request=300
+# max URLs per single HTTP POST request (per protocol spec)
+max_urls_per_request=500
+# default max URLs per request
+urls_per_request=300
 # SafeBrowsing API key variable name (environment variable and/or key name in the config)
 api_key_var_name="SAFEBROWSING_API_KEY"
 
@@ -20,7 +22,7 @@ curl_cmd="curl -s --write-out \\n%{http_code} --data-binary @- "
 deps="curl"
 
 help() {
-	cat <<EOF
+    cat <<EOF
 Usage: ${0##*/} [options] [FILE ...]
 
 Lookup URLs using Google Safe Browsing Lookup API.
@@ -31,6 +33,7 @@ If no filenames are provided, read from standard input.
 Options:
   -c [config filename]  use alternative configuration file (default is $rc_file).
   -a [API key]          use the provided Safe Browsing API key.
+  -m [max URLs]         request is split into chunks of maximum number of URLs (default is $urls_per_request, max is $max_urls_per_request).
 
 If no Safe Browsing API key is provided as an argument, an attempt is made to retrieve the API key from $api_key_var_name environment variable. If the environment variable is not set, an attempt is made to read the API key from a configuration file (default is $rc_file). Configuration file should consist of one line: "${api_key_var_name}=<API key>".
 
@@ -44,119 +47,125 @@ EOF
 }
 
 check_deps() {
-	local i
-	for i in $deps; do
-		if ! type $i >/dev/null 2>&1; then
-			echo "${0##*/}: error: $i is required. aborting."
-			exit 1
-		fi
-	done
+    local i
+    for i in $deps; do
+        if ! type $i >/dev/null 2>&1; then
+            echo "${0##*/}: error: $i is required. aborting."
+            exit 1
+        fi
+    done
 }
 
 read_config() {
-	local key value
-	while IFS="=" read key value; do
-		if [ "$key" = "${api_key_var_name}" -a -n "$value" ]; then
-			eval ${api_key_var_name}=\"$value\"
-			# break
-		fi
-	done < "$rc_file"
+    local key value
+    while IFS="=" read key value; do
+        if [ "$key" = "${api_key_var_name}" -a -n "$value" ]; then
+            eval ${api_key_var_name}=\"$value\"
+            # break
+        fi
+    done < "$rc_file"
 }
 
 parse_response() {
-	local response line i k
+    local response line i k
 
-	declare -a response=()
-	while read -r line; do
-		response=(${response[@]} $line)
-	done
+    declare -a response=()
+    while read -r line; do
+        response=(${response[@]} $line)
+    done
 
-	case "$line" in
-		200)
-			let "i = 0"
-			for k in "$@"; do
-				printf "%s\t%s\n" "${response[i]}" "$k"
-				let "i += 1"
-			done ;;
-		204)
-			for url in "$@"; do
-				printf "ok\t%s\n" "$url"
-			done ;;
-		400)
-			echo "${0##*/}: error: HTTP/400, request malformed."
-			exit 2 ;;
-		401) 
-			echo "${0##*/}: error: HTTP/401, API key is not authorized."
-			exit 2 ;;
-		403)
-			echo "${0##*/}: error: HTTP/403, possibly invalid API key."
-			exit 2 ;;
-		503)
-			echo "${0##*/}: error: HTTP/503, service is unavailable."
-			exit 2 ;;
-		*)
-			echo "${0##*/}: error: unexpected protocol error, HTTP/$line returned."
-			exit 2 ;;
-	esac
+    case "$line" in
+        200)
+            let "i = 0"
+            for k in "$@"; do
+                printf "%s\t%s\n" "${response[i]}" "$k"
+                let "i += 1"
+            done ;;
+        204)
+            for url in "$@"; do
+                printf "ok\t%s\n" "$url"
+            done ;;
+        400)
+            echo "${0##*/}: error: HTTP/400, request malformed."
+            exit 2 ;;
+        401) 
+            echo "${0##*/}: error: HTTP/401, API key is not authorized."
+            exit 2 ;;
+        403)
+            echo "${0##*/}: error: HTTP/403, possibly invalid API key."
+            exit 2 ;;
+        503)
+            echo "${0##*/}: error: HTTP/503, service is unavailable."
+            exit 2 ;;
+        *)
+            echo "${0##*/}: error: unexpected protocol error, HTTP/$line returned."
+            exit 2 ;;
+    esac
 }
 
 query_api() {
-	{
-		printf "%d" $#;
-		for url in "$@"; do
-			printf "\n%s" "$url"
-		done;
-	} | $curl_cmd "$sblookup_url${!api_key_var_name}" 2>&1 |
-	parse_response "$@"
+    {
+        printf "%d" $#;
+        for url in "$@"; do
+            printf "\n%s" "$url"
+        done;
+    } | $curl_cmd "$sblookup_url${!api_key_var_name}" 2>&1 |
+    parse_response "$@"
 }
 
 
 # main
 #
 
-while getopts ":a:c:h" opt; do
-	case $opt in
-		a) 
-			eval ${api_key_var_name}=\"$OPTARG\" ;;
-		c) 
-			rc_file="$OPTARG" ;;
-		h) 
-			help
-			exit 0 ;;
-		*) 
-			echo "${0##*/}: error: invalid option -- '$OPTARG'"
-			exit 1 ;;
-	esac
+while getopts ":a:c:m:h" opt; do
+    case $opt in
+        a) 
+            eval ${api_key_var_name}=\"$OPTARG\" ;;
+        c) 
+            rc_file="$OPTARG" ;;
+        m)
+            let "urls_per_request=$OPTARG"
+            if [ $urls_per_request -lt 1 -o $urls_per_request -gt $max_urls_per_request ]; then
+                echo "${0##*/}: error: invalid number of max URLs per request chunk -- '$OPTARG'. The value must be between 1 and $max_urls_per_request."
+                exit 1
+            fi ;;
+        h) 
+            help
+            exit 0 ;;
+        *) 
+            echo "${0##*/}: error: invalid option -- '$OPTARG'"
+            exit 1 ;;
+    esac
 done
 
 shift $(($OPTIND - 1))
 
 if [ -z "${!api_key_var_name}" -a -r "$rc_file" ]; then
-	read_config
+    read_config
 fi
 
 if [ -z "${!api_key_var_name}" ]; then
-	echo "${0##*/}: error: ${api_key_var_name} has not been provided."
-	exit 1
+    echo "${0##*/}: error: ${api_key_var_name} has not been provided."
+    exit 1
 fi
 
 check_deps
 
 cat "${@:--}" |
 while true; do
-	declare -a urls=()
-	let "numread = 0"
-	while read -r url; do
-		if [ -z "$url" ]; then continue; fi
-		urls[$numread]="$url"
-		let "numread += 1"
-		if [ $numread -eq $max_urls_per_request ]; then break; fi;
-	done
+    declare -a urls=()
+    let "numread = 0"
+    while read -r url; do
+        if [ -z "$url" ]; then continue; fi
+        urls[$numread]="$url"
+        let "numread += 1"
+        if [ $numread -eq $urls_per_request ]; then break; fi;
+    done
 
-	if [ $numread -eq 0 ]; then
-		break
-	fi
-	query_api "${urls[@]}"
+    if [ $numread -eq 0 ]; then
+        break
+    fi
+    query_api "${urls[@]}"
 done
 
 exit 0
