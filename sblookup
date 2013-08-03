@@ -50,7 +50,7 @@ check_deps() {
     local i
     for i in $deps; do
         if ! type $i >/dev/null 2>&1; then
-            echo "${0##*/}: error: $i is required. aborting."
+            echo "${0##*/}: error: $i is required. aborting." >&2
             exit 1
         fi
     done
@@ -86,19 +86,19 @@ parse_response() {
                 printf "ok\t%s\n" "$url"
             done ;;
         400)
-            echo "${0##*/}: error: HTTP/400, request malformed."
+            echo "${0##*/}: error: HTTP/400, request malformed." >&2
             exit 2 ;;
         401) 
-            echo "${0##*/}: error: HTTP/401, API key is not authorized."
+            echo "${0##*/}: error: HTTP/401, API key is not authorized." >&2
             exit 2 ;;
         403)
-            echo "${0##*/}: error: HTTP/403, possibly invalid API key."
+            echo "${0##*/}: error: HTTP/403, possibly invalid API key." >&2
             exit 2 ;;
         503)
-            echo "${0##*/}: error: HTTP/503, service is unavailable."
+            echo "${0##*/}: error: HTTP/503, service is unavailable." >&2
             exit 2 ;;
         *)
-            echo "${0##*/}: error: unexpected protocol error, HTTP/$line returned."
+            echo "${0##*/}: error: unexpected protocol error, HTTP/$line returned." >&2
             exit 2 ;;
     esac
 }
@@ -126,14 +126,14 @@ while getopts ":a:c:m:h" opt; do
         m)
             let "urls_per_request=$OPTARG"
             if [ $urls_per_request -lt 1 -o $urls_per_request -gt $max_urls_per_request ]; then
-                echo "${0##*/}: error: invalid number of max URLs per request chunk -- '$OPTARG'. The value must be between 1 and $max_urls_per_request."
+                echo "${0##*/}: error: invalid number of max URLs per request chunk -- '$OPTARG'. The value must be between 1 and $max_urls_per_request." >&2
                 exit 1
             fi ;;
         h) 
             help
             exit 0 ;;
         *) 
-            echo "${0##*/}: error: invalid option -- '$OPTARG'"
+            echo "${0##*/}: error: invalid option -- '$OPTARG'" >&2
             exit 1 ;;
     esac
 done
@@ -145,7 +145,7 @@ if [ -z "${!api_key_var_name}" -a -r "$rc_file" ]; then
 fi
 
 if [ -z "${!api_key_var_name}" ]; then
-    echo "${0##*/}: error: ${api_key_var_name} has not been provided."
+    echo "${0##*/}: error: ${api_key_var_name} has not been provided." >&2
     exit 1
 fi
 
