@@ -11,7 +11,7 @@ sblookup is a bash script with dependency on `curl`. To install it, simply copy 
 
 For help on using sblookup, invoke it with an `-h` option (i.e. `sblookup -h`).
 
-**NOTE**: sblookup is utilizing Google Safe Browsing Lookup API, protocol version 3.1. For more details, and to learn how to obtain Safebrowsing API key, see [Google Safe Browsing Lookup API Guide][lookup-guide].
+**NOTE**: sblookup is utilizing Google Safe Browsing Lookup API, protocol version 3.1. For more details, and to learn how to obtain Safe Browsing API key, see [Google Safe Browsing Lookup API Guide][lookup-guide].
 
 ## Example
 
