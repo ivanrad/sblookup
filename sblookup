@@ -2,12 +2,14 @@
 #
 # Lookup URLs using Google Safebrowsing Lookup API.
 # 
-# Copyright (c) 2012-2013 Ivan Radanovic <ivanra at gmail>
+# Copyright (c) 2012-2014 Ivan Radanovic <ivanra at gmail>
 #
-# Utilizes Google Safe Browsing Lookup API, protocol version 3.0.
+# Utilizes Google Safe Browsing Lookup API, protocol version 3.1.
 # See https://developers.google.com/safe-browsing/lookup_guide for more information.
 #
 
+# version info 
+version_info="1.0.1"
 # default config file
 rc_file="$HOME/.sblookuprc"
 # max URLs per single HTTP POST request (per protocol spec)
@@ -17,12 +19,14 @@ urls_per_request=300
 # SafeBrowsing API key variable name (environment variable and/or key name in the config)
 api_key_var_name="SAFEBROWSING_API_KEY"
 
-sblookup_url="https://sb-ssl.google.com/safebrowsing/api/lookup?client=sblookup&appver=1.0&pver=3.0&apikey="
+sblookup_url="https://sb-ssl.google.com/safebrowsing/api/lookup?client=sblookup&appver=${version_info}&pver=3.1&key="
 curl_cmd="curl -s --write-out \\n%{http_code} --data-binary @- " 
 deps="curl"
 
 help() {
     cat <<EOF
+${0##*/} v${version_info}
+
 Usage: ${0##*/} [options] [FILE ...]
 
 Lookup URLs using Google Safe Browsing Lookup API.

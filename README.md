@@ -5,14 +5,13 @@ It returns Safe Browsing verdicts for URLs read from files (or standard input).
 
 ## Installing
 
-sblookup is a `bash` script, but it also relies on `curl` being installed.
-To install sblookup script, simply copy it to a local folder and make sure execute bit is set. Ideally, the folder should be in the `PATH` (e.g. `/usr/local/bin` or `$HOME/bin`). 
+sblookup is a bash script with dependency on `curl`. To install it, simply copy the script to a local folder (ideally, one that's already in your $PATH), and make sure the execute bit is set.
 
 ## Using
 
 For help on using sblookup, invoke it with an `-h` option (i.e. `sblookup -h`).
 
-**NOTE**: sblookup is utilizing Google Safe Browsing Lookup API, protocol version 3.0. For more details, see [Google Safe Browsing Lookup API](https://developers.google.com/safe-browsing/lookup_guide).
+**NOTE**: sblookup is utilizing Google Safe Browsing Lookup API, protocol version 3.1. For more details, and to learn how to obtain Safebrowsing API key, see [Google Safe Browsing Lookup API Guide][lookup-guide].
 
 ## Example
 
@@ -21,6 +20,7 @@ For help on using sblookup, invoke it with an `-h` option (i.e. `sblookup -h`).
 		http://www.google.com/
 		http://malware.testing.google.test/testing/malware/
 		http://twitter.com/
+		http://ianfette.org
 		https://github.com/
 
 		$ ./sblookup -a <Safe Browsing API key> sblookup_example.txt
@@ -28,11 +28,13 @@ For help on using sblookup, invoke it with an `-h` option (i.e. `sblookup -h`).
 		ok      http://www.google.com/
 		malware http://malware.testing.google.test/testing/malware/
 		ok      http://twitter.com/
+		malware http://ianfette.org
 		ok      https://github.com/
 
 ## License
 
-Copyright (c) 2012-2013 Ivan Radanovic &lt;ivanra at gmail&gt;.
+Copyright (c) 2012-2014 Ivan Radanovic &lt;ivanra at gmail&gt;.
 
 This code has been published under MIT license. See `LICENSE` file for more information.
 
+[lookup-guide]: https://developers.google.com/safe-browsing/lookup_guide "Google Safebrowsing Lookup API Guide"
